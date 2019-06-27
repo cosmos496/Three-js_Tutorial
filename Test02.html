@@ -2,10 +2,13 @@
   <head>
     <meta charset="utf-8" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="js/ShaderLoader.min.js"></script>
     <style>
         body{
             overflow:hidden;
         }
+
         body, canvas{
             padding: 0; margin: 0;
         }
@@ -17,31 +20,41 @@
     <script>
       // ページの読み込みを待つ
       window.addEventListener('load', init);
+
       function init() {
         // サイズを指定
         const width = window.innerWidth;
         const height = window.innerHeight;
+
         let rot = 0; // 角度
+
         // レンダラーを作成
         const renderer = new THREE.WebGLRenderer({
           canvas: document.querySelector('#myCanvas')
         });
+
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(width, height);
         renderer.setClearColor('0x0E0E0E', 1.0);
+
         // シーンを作成
         const scene = new THREE.Scene();
         // カメラを作成
         const camera = new THREE.PerspectiveCamera(45, width / height);
+
         // 星屑を作成します (カメラの動きをわかりやすくするため)
         createStarField();
+
         function createStarField() {
           // 形状データを作成
           const geometry = new THREE.Geometry();
           // 配置する範囲
-          const SIZE = 3000;
+          const SIZE = 1000;
           // 配置する個数
-          const LENGTH = 1000;
+          const LENGTH = 30000;
+          const loader = new THREE.TextureLoader();
+          const texture = loader.load('test.png');
+
           for (let i = 0; i < LENGTH; i++) {
             geometry.vertices.push(
               new THREE.Vector3(
@@ -53,16 +66,23 @@
           }
           // マテリアルを作成
           const material = new THREE.PointsMaterial({
+            map: texture,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            depthTest: false,
             // 一つ一つのサイズ
             size: 10,
             // 色
             color: 0xffffff
           });
+          geometry.computeVertexNormals();
           // 物体を作成
           const mesh = new THREE.Points(geometry, material);
           scene.add(mesh);
         }
+
         tick();
+        
         // 毎フレーム時に実行されるループイベントです
         function tick() {
           rot += 1;
@@ -78,6 +98,7 @@
           requestAnimationFrame(tick);
         }
       }
+
       var timer = 0;
  
       window.onresize = function () {
